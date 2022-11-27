@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"inclyc.cn","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.13.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"بحث...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="并行化的需求 Moore 定律的终结 集成电路上可容纳的晶体管数目，约每隔两年便会增加一倍。曾经我们可以非常简单地提高单核的性能来提高计算机的运行效率，然而，现在这一美好的想法已经结束了。由于功耗墙的存在，如今，CPU单核性能已经很难提升，CPU频率已经早已脱离早期指数性发展曲线。  并行化 提高计算机性能的方法，是并行化。让多个CPU，多个核心并行地处理问题，是提高性能的最佳方法。目前，几乎所有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SIMD，向量机与自动向量化">
+<meta property="og:url" content="http://inclyc.cn/2022/11/27/Compiler/vectorizer/index.html">
+<meta property="og:site_name" content="inclyc">
+<meta property="og:description" content="并行化的需求 Moore 定律的终结 集成电路上可容纳的晶体管数目，约每隔两年便会增加一倍。曾经我们可以非常简单地提高单核的性能来提高计算机的运行效率，然而，现在这一美好的想法已经结束了。由于功耗墙的存在，如今，CPU单核性能已经很难提升，CPU频率已经早已脱离早期指数性发展曲线。  并行化 提高计算机性能的方法，是并行化。让多个CPU，多个核心并行地处理问题，是提高性能的最佳方法。目前，几乎所有">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://inclyc.cn/images/moore.jpeg">
+<meta property="og:image" content="http://inclyc.cn/images/dual_core.png">
+<meta property="og:image" content="http://inclyc.cn/images/torch-mlir.png">
+<meta property="og:image" content="http://inclyc.cn/images/smp.png">
+<meta property="og:image" content="http://inclyc.cn/images/SIMD2.svg.png">
+<meta property="og:image" content="http://inclyc.cn/images/rgba.png">
+<meta property="og:image" content="http://inclyc.cn/images/overlap.png">
+<meta property="og:image" content="http://inclyc.cn/images/trans.png">
+<meta property="article:published_time" content="2022-11-27T16:02:03.612Z">
+<meta property="article:modified_time" content="2022-11-27T16:02:03.612Z">
+<meta property="article:author" content="inclyc">
+<meta property="article:tag" content="Compiler">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://inclyc.cn/images/moore.jpeg">
+
+
+<link rel="canonical" href="http://inclyc.cn/2022/11/27/Compiler/vectorizer/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-cn","comments":true,"permalink":"http://inclyc.cn/2022/11/27/Compiler/vectorizer/","path":"2022/11/27/Compiler/vectorizer/","title":"SIMD，向量机与自动向量化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SIMD，向量机与自动向量化 | inclyc</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="تشغيل شريط التصفح" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">inclyc</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">echo 'compiler' | tee OS</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          المحتويات
+        </li>
+        <li class="sidebar-nav-overview">
+          عام
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96%E7%9A%84%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">并行化的需求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#moore-%E5%AE%9A%E5%BE%8B%E7%9A%84%E7%BB%88%E7%BB%93"><span class="nav-number">1.1.</span> <span class="nav-text">Moore 定律的终结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96"><span class="nav-number">1.2.</span> <span class="nav-text">并行化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E7%9A%84%E6%89%8B%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">并行的手段</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gpgpu---%E5%BC%82%E6%9E%84%E8%AE%A1%E7%AE%97"><span class="nav-number">2.1.</span> <span class="nav-text">GPGPU - 异构计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E6%A0%B8"><span class="nav-number">2.2.</span> <span class="nav-text">多核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E6%A0%B8"><span class="nav-number">2.3.</span> <span class="nav-text">单核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B9%B1%E5%BA%8F%E6%89%A7%E8%A1%8C-oooe"><span class="nav-number">2.3.1.</span> <span class="nav-text">乱序执行 (OoOE)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#simd"><span class="nav-number">2.3.2.</span> <span class="nav-text">SIMD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#simd-%E7%9A%84%E5%A5%BD%E5%A4%84"><span class="nav-number">2.3.3.</span> <span class="nav-text">SIMD 的好处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#simd-%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-number">2.3.4.</span> <span class="nav-text">SIMD 的缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vector-vs-simd"><span class="nav-number">2.3.5.</span> <span class="nav-text">Vector vs SIMD</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96auto-vectorization"><span class="nav-number">3.</span> <span class="nav-text">自动向量化(Auto-Vectorization)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%A1%8C%E6%80%A7%E4%B8%8E%E5%A5%BD%E5%A4%84"><span class="nav-number">3.1.</span> <span class="nav-text">可行性与好处</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%88%E6%B3%95%E6%80%A7"><span class="nav-number">3.2.</span> <span class="nav-text">合法性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E7%9B%8A"><span class="nav-number">3.3.</span> <span class="nav-text">收益</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#transformation"><span class="nav-number">3.4.</span> <span class="nav-text">Transformation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#loop-vectorizer-enhancements"><span class="nav-number">3.5.</span> <span class="nav-text">Loop Vectorizer Enhancements</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mask-predication"><span class="nav-number">3.6.</span> <span class="nav-text">Mask &amp; Predication</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">inclyc</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">المقالات</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">التصنيفات</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">الوسوم</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-cn">
+    <link itemprop="mainEntityOfPage" href="http://inclyc.cn/2022/11/27/Compiler/vectorizer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="inclyc">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="inclyc">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SIMD，向量机与自动向量化 | inclyc">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SIMD，向量机与自动向量化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">نُشر في</span>
+
+      <time title="أُنشأ: 2022-11-28 00:02:03" itemprop="dateCreated datePublished" datetime="2022-11-28T00:02:03+08:00">2022-11-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">في</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Compiler/" itemprop="url" rel="index"><span itemprop="name">Compiler</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="并行化的需求">并行化的需求</h1>
+<h2 id="moore-定律的终结">Moore 定律的终结</h2>
+<p>集成电路上可容纳的晶体管数目，约每隔两年便会增加一倍。曾经我们可以非常简单地提高单核的性能来提高计算机的运行效率，然而，现在这一美好的想法已经结束了。由于功耗墙的存在，如今，CPU单核性能已经很难提升，CPU频率已经早已脱离早期指数性发展曲线。</p>
+<p><img src="/images/moore.jpeg" alt="Moore's Law" style="width:60%;"/></p>
+<h2 id="并行化">并行化</h2>
+<p>提高计算机性能的方法，是并行化。让多个CPU，多个核心并行地处理问题，是提高性能的最佳方法。目前，几乎所有的超级计算机都以多核、并行、相关的方向入手，进行性能调优。</p>
+<p><img src="/images/dual_core.png" alt="Dual Core Cache Design" style="width:30%;"/></p>
+<h1 id="并行的手段">并行的手段</h1>
+<h2 id="gpgpu---异构计算">GPGPU - 异构计算</h2>
+<p>显卡(GPU)包含大量的核心来支持高度并行化的计算，最开始的在显卡上的编程是很困难的，随着时代的发展显卡的计算能力越来越不容小觑。通用计算显卡(GPGPU)也开始包含在编译优化的领域。AI模型在大型服务器集群上完成训练，要想投入实践就必须要把他编译到真正的体系结构上运行。</p>
+<p><img src="/images/torch-mlir.png" alt="Torch-MLIR" style="width:60%;"/></p>
+<p>异构计算最复杂的问题在于，多个层面的IR包含可能的信息丢失，如何把IR紧密结合在一起，并完成相应的编译优化？</p>
+<p>例如，你容易知道一个矩阵求两次转置恒等 <span class="math inline">\(\left(A^T\right)^T = A\)</span> ，但如果矩阵转置已经被下降(lowering)到三地址码，甚至是更底层的指令，我们就丢失了矩阵实际上“求了两次转置”这么简单的优化条件。</p>
+<p><a target="_blank" rel="noopener" href="https://mlir.llvm.org">MLIR</a>的出现有助于解决这个问题，但不是这篇文章的重点，可能我会在后续的文章里写相关问题。</p>
+<h2 id="多核">多核</h2>
+<p>为了实现并行化，我们可以给一个计算机加入多个核心。多核心的特点在于：</p>
+<ul>
+<li><p>他们拥有不同的寄存器</p></li>
+<li><p>有不同的中断处理请求</p></li>
+<li><p>一般由操作系统-对称多处理(SMP)调度</p></li>
+</ul>
+<p><img src="/images/smp.png" alt="Symmetric multiprocessing" style="width:60%;"/></p>
+<p>不同的寄存器代表每个核心具有不同的状态。例如，他们可能拥有不同的PC指针指向不同的代码区段，这样便可同时执行编写好的多段代码。</p>
+<h2 id="单核">单核</h2>
+<h3 id="乱序执行-oooe">乱序执行 (OoOE)</h3>
+<p>乱序执行(Out-of-Order Execution)是现代CPU最基本的一个并行手段。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">test</span><span class="params">(<span class="type">int</span> &amp;a,</span></span></span><br><span class="line"><span class="params"><span class="function">         <span class="type">int</span> &amp;b,</span></span></span><br><span class="line"><span class="params"><span class="function">         <span class="type">int</span> &amp;c,</span></span></span><br><span class="line"><span class="params"><span class="function">         <span class="type">int</span> &amp;d)</span> </span>&#123;</span><br><span class="line">    a += b;</span><br><span class="line">    c += d;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段 C++ 代码被编译为如下所示的汇编。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">lw      a1, 0(a1)</span><br><span class="line">lw      a4, 0(a0)</span><br><span class="line">addw    a1, a1, a4</span><br><span class="line">sw      a1, 0(a0)</span><br><span class="line">lw      a0, 0(a3)</span><br><span class="line">lw      a1, 0(a2)</span><br><span class="line">addw    a0, a0, a1</span><br><span class="line">sw      a0, 0(a2)</span><br></pre></td></tr></table></figure>
+<h3 id="simd">SIMD</h3>
+<p>OoOE在编程上由编译器全局指令调度器(Instruction Scheduler)优化。</p>
+<p>单指令流多数据流(Single instruction, multiple data (SIMD))，提供了一种让我 们更好地进行向量计算的方式。</p>
+<p><img src="/images/SIMD2.svg.png" alt="SIMD" style="width:40%;"/></p>
+<h3 id="simd-的好处">SIMD 的好处</h3>
+<p>通常情况下我们很难将串行代码转化为并行，为了设计并行算法通常需要改变原有的逻辑。</p>
+<p><img src="/images/rgba.png" alt="RGBA" style="width:60%;"/></p>
+<p>如图所示，在图形学中我们经常需要计算图像的颜色信息，而颜色在RGBA几个维度下的计算是可以向量化的。</p>
+<h3 id="simd-的缺陷">SIMD 的缺陷</h3>
+<blockquote>
+<p>RISC-V Designers SIMD Instructions considered harmful. -- David Patterson</p>
+</blockquote>
+<p>一开始，SIMD被认为是实现并行化简单有效的方法。我们将64位寄存器和ALU划分为许多8, 16, 32位的块，然后并行地计算它们。用每条指令的操作码(opcode)提供数据宽度和操作。</p>
+<p><strong>指令集膨胀</strong></p>
+<p><code>IA-32</code>指令集已经从最开始的80多条指令增长到了现在的1400多条。<code>SSE</code>, <code>AVX</code>, 各种SIMD扩展和宽寄存器让指令集变得越来越复杂。</p>
+<p><strong>尾循环</strong></p>
+<p>SIMD 指令通常要求把数据完全加载到向量寄存器中，然后一次处理 <span class="math inline">\(n\)</span> 个数据。但不是所有的应用场合，需要处理的数据都能被 <span class="math inline">\(n\)</span> 整除，这就导致需要一个标量循环，完成向量循环的收尾工作，这个循环就被称为 <strong>尾循环</strong>。</p>
+<h3 id="vector-vs-simd">Vector vs SIMD</h3>
+<p>向量机与SIMD的真正区别在于，向量长度是否在机器码层面确定。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> *<span class="title">memcpy_vec</span><span class="params">(<span class="type">void</span> *dst, <span class="type">void</span> *src, <span class="type">size_t</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *save = dst;</span><br><span class="line">    <span class="comment">// 逐字节拷贝内存区域</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">size_t</span> vl; n &gt; <span class="number">0</span>; n -= vl, src += vl, dst += vl) &#123;</span><br><span class="line">        vl = <span class="built_in">vsetvl_e8m8</span>(n); <span class="comment">// 需要计算 n 个元素，由 CPU 计算 vl</span></span><br><span class="line">        <span class="type">vuint8m8_t</span> vec_src = <span class="built_in">vle8_v_u8m8</span>(src, vl); <span class="comment">// 从 src 中加载 vl 个元素</span></span><br><span class="line">        <span class="built_in">vse8_v_u8m8</span>(dst, vec_src, vl); <span class="comment">// 写入 vl 个元素到 dst</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> save;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个代码展示了 RISC-V 实现<code>memcpy</code>的矢量版本（“伪汇编”，用C表示）。 这个程序最关键的部分在于<code>vl</code>的设定，每次循环都加载<code>vl</code>个元素，而<code>vl</code>对于 RISC-V 而言是一个每次循环可变的量。</p>
+<p>CPU可以自己适配要计算多少个元素，给出尽量多的一次计算的元素，然后再一起操作。</p>
+<p><code>vl</code> 对于这段代码而言，是 “长度无关的”。对于传统的 SIMD 指令，我们需要用不同的指令，代表不同的向量长度，例如 <code>SSE</code> 通常加载 128 位，而 <code>AVX2</code> 通常加载 256 位。</p>
+<p>这样做可以带来很多好处。首先，二进制程序便在支持不同矢量长度的 CPU 之间可以直接执行，而不需要重新编译（二进制兼容）。其次，SIMD 指令集通常需要内存对齐，尾循环等等不能很好向量化的部分，而可变向量长度 <code>vl</code> 的存在使得可以消除尾循环。</p>
+<h1 id="自动向量化auto-vectorization">自动向量化(Auto-Vectorization)</h1>
+<h2 id="可行性与好处">可行性与好处</h2>
+<p>标量代码可以被自动向量化成含向量计算的代码。</p>
+<p>事实上，大量的标量循环都可以被向量化 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">add</span><span class="params">(<span class="type">int</span> * restrict A, <span class="type">int</span> * restrict B, <span class="type">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;i++)&#123;</span><br><span class="line">        A[i] += B[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="合法性">合法性</h2>
+<p>数据依赖 &amp; Overlap (Alias Analysis)</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; N; i += <span class="number">1</span>) &#123;</span><br><span class="line">    a[i+<span class="number">1</span>] = b[i] + <span class="number">1</span>;  <span class="comment">// S1</span></span><br><span class="line">    b[i+<span class="number">1</span>] = a[i] + <span class="number">1</span>;  <span class="comment">// S2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/overlap.png" alt="Example of pointer overlapping" style="width:60%;"/></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt; n;i++)</span><br><span class="line">    A[i] = A[i - <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt; n;i++)</span><br><span class="line">    A[i + <span class="number">1</span>] = B[i]; <span class="comment">// overlap?</span></span><br></pre></td></tr></table></figure>
+<h2 id="收益">收益</h2>
+<p>必然导致的程序大小增加 / 标量循环和向量循环的选择和跳转</p>
+<p>数据对齐的代价，尾循环的代价，都是需要考虑的因素。</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">load</span> <span class="type">i64</span><span class="comment">;</span></span><br><span class="line"><span class="keyword">load</span> <span class="type">i64</span><span class="comment">;</span></span><br><span class="line"><span class="keyword">load</span> <span class="type">i64</span><span class="comment">;</span></span><br><span class="line"><span class="keyword">load</span> <span class="type">i64</span><span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">load</span> &lt;<span class="number">4</span> <span class="keyword">x</span> <span class="type">i64</span>&gt;<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<p>这个部分的代价计算在LLVM后端作为虚函数，由具体的<code>Target</code>给出估计。每个体系结构可能有不同的 SIMD 指令代价，但代价模型在优化层次是通用的</p>
+<h2 id="transformation">Transformation</h2>
+<p>下图展示了 LLVM Developer 2013 中，来自 Apple 的工程师给出的 LLVM 循环向量化工具。</p>
+<p><img src="/images/trans.png" alt="LLVM Developer 2013 by Apple" style="width:60%;"/></p>
+<h2 id="loop-vectorizer-enhancements">Loop Vectorizer Enhancements</h2>
+<p>现代化向量指令集可以更好地完成向量长度选择。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">memcpy:</span><br><span class="line">    mv a3, a0 # Copy destination</span><br><span class="line">loop:</span><br><span class="line">    vsetvli t0, a2, e8, m8, ta, ma   # Vectors of 8b</span><br><span class="line">    vle8.v v0, (a1)                  # Load bytes</span><br><span class="line">    add a1, a1, t0                   # Bump pointer</span><br><span class="line">    sub a2, a2, t0                   # Decrement count</span><br><span class="line">    vse8.v v0, (a3)                  # Store bytes</span><br><span class="line">    add a3, a3, t0                   # Bump pointer</span><br><span class="line">    bnez a2, loop                    # Any more?</span><br><span class="line">    ret                              # Return</span><br></pre></td></tr></table></figure>
+<h2 id="mask-predication">Mask &amp; Predication</h2>
+<p>Predication (判定寄存器) 其实是来源于ARM SVE的一个东西</p>
+<p>VP-based Loop Vectorizer 在 LLVM 中还没实现...</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Compiler/" rel="tag"># Compiler</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/06/Misc/lazy_load_conda/" rel="prev" title="延迟加载conda环境">
+                  <i class="fa fa-chevron-left"></i> 延迟加载conda环境
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">inclyc</span>
+</div>
+  <div class="powered-by">تطبيق الموقع <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

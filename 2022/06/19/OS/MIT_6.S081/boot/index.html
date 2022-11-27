@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"inclyc.cn","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.13.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"بحث...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="启动xv6(easy) 前言 我的实验环境是一台PC, 运行在我的寝室，作为工作站运行。 1234567891011121314151617181920212223[I] lyc@lyc-workstation ~&#x2F;w&#x2F;学&#x2F;C&#x2F;c&#x2F;MIT6.S081 (master)&gt; neofetch         -&#x2F;oyddmdhs+:.                lyc@lyc-worksta">
+<meta property="og:type" content="article">
+<meta property="og:title" content="启动xv6">
+<meta property="og:url" content="http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/index.html">
+<meta property="og:site_name" content="inclyc">
+<meta property="og:description" content="启动xv6(easy) 前言 我的实验环境是一台PC, 运行在我的寝室，作为工作站运行。 1234567891011121314151617181920212223[I] lyc@lyc-workstation ~&#x2F;w&#x2F;学&#x2F;C&#x2F;c&#x2F;MIT6.S081 (master)&gt; neofetch         -&#x2F;oyddmdhs+:.                lyc@lyc-worksta">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-19T20:10:19.000Z">
+<meta property="article:modified_time" content="2022-11-27T16:02:03.612Z">
+<meta property="article:author" content="inclyc">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-cn","comments":true,"permalink":"http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/","path":"2022/06/19/OS/MIT_6.S081/boot/","title":"启动xv6"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>启动xv6 | inclyc</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="تشغيل شريط التصفح" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">inclyc</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">echo 'compiler' | tee OS</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          المحتويات
+        </li>
+        <li class="sidebar-nav-overview">
+          عام
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8xv6easy"><span class="nav-number">1.</span> <span class="nav-text">启动xv6(easy)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#risc-v-64%E8%BF%90%E8%A1%8C%E5%92%8C%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.</span> <span class="nav-text">RISC-V 64运行和交叉编译环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#cross-compilers"><span class="nav-number">1.2.1.</span> <span class="nav-text">cross-compilers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#emulatorqemu"><span class="nav-number">1.2.2.</span> <span class="nav-text">Emulator(QEMU)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AE%9E%E9%AA%8C%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-number">1.3.</span> <span class="nav-text">获取实验源代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#clone-mit-xv6%E4%BB%93%E5%BA%93"><span class="nav-number">1.3.1.</span> <span class="nav-text">clone mit xv6仓库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E5%88%B0util%E5%88%86%E6%94%AF"><span class="nav-number">1.3.2.</span> <span class="nav-text">选到util分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%92%8C%E8%BF%9B%E5%85%A5xv6%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.4.</span> <span class="nav-text">编译和进入xv6系统</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">inclyc</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">المقالات</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">التصنيفات</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">الوسوم</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-cn">
+    <link itemprop="mainEntityOfPage" href="http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="inclyc">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="inclyc">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="启动xv6 | inclyc">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          启动xv6
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">نُشر في</span>
+
+      <time title="أُنشأ: 2022-06-20 04:10:19" itemprop="dateCreated datePublished" datetime="2022-06-20T04:10:19+08:00">2022-06-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">عُدل في</span>
+      <time title="عُدل: 2022-11-28 00:02:03" itemprop="dateModified" datetime="2022-11-28T00:02:03+08:00">2022-11-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">في</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/OS/" itemprop="url" rel="index"><span itemprop="name">OS</span></a>
+        </span>
+          ، 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/OS/MIT-6-S081/" itemprop="url" rel="index"><span itemprop="name">MIT_6.S081</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="启动xv6easy">启动xv6(easy)</h1>
+<h2 id="前言">前言</h2>
+<p>我的实验环境是一台PC, 运行在我的寝室，作为工作站运行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[I] lyc@lyc-workstation ~/w/学/C/c/MIT6.S081 (master)&gt; neofetch</span><br><span class="line">         -/oyddmdhs+:.                lyc@lyc-workstation</span><br><span class="line">     -odNMMMMMMMMNNmhy+-`             -------------------</span><br><span class="line">   -yNMMMMMMMMMMMNNNmmdhy+-           OS: Gentoo Base System release 2.8 x86_64</span><br><span class="line"> `omMMMMMMMMMMMMNmdmmmmddhhy/`        Host: MS-7D42 1.0</span><br><span class="line"> omMMMMMMMMMMMNhhyyyohmdddhhhdo`      Kernel: 5.18.5-gentoo-lyc</span><br><span class="line">.ydMMMMMMMMMMdhs++so/smdddhhhhdm+`    Uptime: 22 hours, 29 mins</span><br><span class="line"> oyhdmNMMMMMMMNdyooydmddddhhhhyhNd.   Packages: 1473 (emerge)</span><br><span class="line">  :oyhhdNNMMMMMMMNNNmmdddhhhhhyymMh   Shell: bash 5.1.16</span><br><span class="line">    .:+sydNMMMMMNNNmmmdddhhhhhhmMmy   Resolution: 3840x2160</span><br><span class="line">       /mMMMMMMNNNmmmdddhhhhhmMNhs:   DE: Plasma 5.24.5</span><br><span class="line">    `oNMMMMMMMNNNmmmddddhhdmMNhs+`    WM: KWin</span><br><span class="line">  `sNMMMMMMMMNNNmmmdddddmNMmhs/.      WM Theme: Breeze 微风</span><br><span class="line"> /NMMMMMMMMNNNNmmmdddmNMNdso:`        Theme: Breeze Light [Plasma], Breeze [GTK2/3]</span><br><span class="line">+MMMMMMMNNNNNmmmmdmNMNdso/-           Icons: Fluent [Plasma], Fluent [GTK2/3]</span><br><span class="line">yMMNNNNNNNmmmmmNNMmhs+/-`             Terminal: Konsole</span><br><span class="line">/hMMNNNNNNNNMNdhs++/-`                CPU: 12th Gen Intel i7-12700 (20) @ 4.900GHz</span><br><span class="line">`/ohdmmddhys+++/:.`                   GPU: Intel AlderLake-S GT1</span><br><span class="line">  `-//////:--.                        Memory: 36679MiB / 128619MiB</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="risc-v-64运行和交叉编译环境">RISC-V 64运行和交叉编译环境</h2>
+<h3 id="cross-compilers">cross-compilers</h3>
+<p>要运行老师给的<code>xv6</code>操作系统代码，必须先有交叉编译工具。<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2021/tools.html">[1]</a></p>
+<p>用gentoo的crossdev工具<a target="_blank" rel="noopener" href="https://wiki.gentoo.org/wiki/Cross_build_environment">[2]</a>安装跨指令集的编译工具，包括<code>GNU binutils</code>, <code>gcc</code>, <code>g++</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo crossdev --stable -t riscv64-unknown-linux-gnu</span><br></pre></td></tr></table></figure>
+<h3 id="emulatorqemu">Emulator(QEMU)</h3>
+<p>安装打开了riscv64对应的编译开关的<code>qemu</code>，我的实验主机是<code>Gentoo Linux</code>操作系统，在<code>Portage</code>中加入<code>USE</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">write-use app-emulation qemu qemu_user_targets_riscv64 qemu_softmmu_targets_riscv64</span><br></pre></td></tr></table></figure>
+<p>其中<code>write-use</code>是一个自己写的辅助脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lyc@lyc-workstation ~&gt; <span class="built_in">cat</span> $(<span class="built_in">which</span> write-use)</span><br><span class="line"><span class="comment">#!/bin/fish</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> portage_use_dir <span class="string">&quot;/etc/portage/package.use&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$argv</span>[1]/<span class="variable">$argv</span>[2] <span class="variable">$argv</span>[3..]&quot;</span> | sudo <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$portage_use_dir</span>/<span class="variable">$argv</span>[1]&quot;</span></span><br></pre></td></tr></table></figure>
+<p>然后，重新编译qemu</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo emerge -av qemu</span><br></pre></td></tr></table></figure>
+<h2 id="获取实验源代码">获取实验源代码</h2>
+<h3 id="clone-mit-xv6仓库">clone mit xv6仓库</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git://g.csail.mit.edu/xv6-labs-2021</span><br></pre></td></tr></table></figure>
+<h3 id="选到util分支">选到util分支</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> xv6-labs-2021 &amp;&amp; git checkout util</span><br></pre></td></tr></table></figure>
+<h2 id="编译和进入xv6系统">编译和进入xv6系统</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[I] lyc@lyc-workstation ~/w/学/C/c/M/xv6-labs-2021 (util)&gt; make qemu</span><br><span class="line">qemu-system-riscv64 -machine virt -bios none -kernel kernel/kernel -m 128M -smp 3 -nographic -drive file=fs.img,if=none,format=raw,id=x0 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0</span><br><span class="line"></span><br><span class="line">xv6 kernel is booting</span><br><span class="line"></span><br><span class="line">hart 1 starting</span><br><span class="line">hart 2 starting</span><br><span class="line">init: starting sh</span><br><span class="line">$</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>Ctrl-a x</code>退出系统。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OS/" rel="tag"># OS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/06/19/OS/MIT_6.S081/sleep/" rel="prev" title="xv6-util-sleep">
+                  <i class="fa fa-chevron-left"></i> xv6-util-sleep
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/06/20/OS/MIT_6.S081/pingpong/" rel="next" title="xv6-util-pingpong">
+                  xv6-util-pingpong <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">inclyc</span>
+</div>
+  <div class="powered-by">تطبيق الموقع <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
