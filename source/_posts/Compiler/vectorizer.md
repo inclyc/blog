@@ -6,6 +6,7 @@ categories:
 tags:
   - Compiler
 mathjax: true
+date: 2022-11-27 11:00:19
 ---
 
 # 并行化的需求
@@ -237,4 +238,3 @@ loop:
 Predication (判定寄存器) 其实是来源于ARM SVE的一个东西
 
 VP-based Loop Vectorizer 在 LLVM 中还没实现\...
-
