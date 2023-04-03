@@ -4,7 +4,7 @@
   <url>
     <loc>http://inclyc.cn/tags/index.html</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -13,16 +13,7 @@
   <url>
     <loc>http://inclyc.cn/2022/12/13/%E5%AE%9E%E7%94%A8%E5%B0%8F%E6%8C%87%E4%BB%A4/</loc>
     
-    <lastmod>2023-02-02</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://inclyc.cn/categories/index.html</loc>
-    
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -31,7 +22,7 @@
   <url>
     <loc>http://inclyc.cn/2022/11/27/Compiler/vectorizer/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -40,7 +31,7 @@
   <url>
     <loc>http://inclyc.cn/2022/10/06/Misc/lazy_load_conda/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -49,7 +40,7 @@
   <url>
     <loc>http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -58,7 +49,7 @@
   <url>
     <loc>http://inclyc.cn/2022/06/20/OS/MIT_6.S081/pingpong/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -67,7 +58,7 @@
   <url>
     <loc>http://inclyc.cn/2022/06/20/OS/MIT_6.S081/primes/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -76,7 +67,7 @@
   <url>
     <loc>http://inclyc.cn/2022/06/19/OS/MIT_6.S081/sleep/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -85,7 +76,16 @@
   <url>
     <loc>http://inclyc.cn/2022/06/21/OS/MIT_6.S081/syscall/</loc>
     
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://inclyc.cn/categories/index.html</loc>
+    
+    <lastmod>2023-04-03</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -94,7 +94,7 @@
 
   <url>
     <loc>http://inclyc.cn/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -102,28 +102,28 @@
   
   <url>
     <loc>http://inclyc.cn/tags/Compiler/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/tags/Misc/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/tags/Zsh/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/tags/OS/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -132,28 +132,28 @@
   
   <url>
     <loc>http://inclyc.cn/categories/Compiler/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/categories/Misc/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/categories/OS/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://inclyc.cn/categories/OS/MIT-6-S081/</loc>
-    <lastmod>2023-02-02</lastmod>
+    <lastmod>2023-04-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
