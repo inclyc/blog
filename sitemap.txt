@@ -1,5 +1,6 @@
 http://inclyc.cn/tags/index.html
 http://inclyc.cn/2022/12/13/%E5%AE%9E%E7%94%A8%E5%B0%8F%E6%8C%87%E4%BB%A4/
+http://inclyc.cn/2022/11/27/Compiler/vectorizer/
 http://inclyc.cn/2022/10/06/Misc/lazy_load_conda/
 http://inclyc.cn/2022/06/19/OS/MIT_6.S081/boot/
 http://inclyc.cn/2022/06/20/OS/MIT_6.S081/pingpong/
@@ -7,7 +8,6 @@ http://inclyc.cn/2022/06/20/OS/MIT_6.S081/primes/
 http://inclyc.cn/2022/06/19/OS/MIT_6.S081/sleep/
 http://inclyc.cn/2022/06/21/OS/MIT_6.S081/syscall/
 http://inclyc.cn/categories/index.html
-http://inclyc.cn/2022/11/27/Compiler/vectorizer/
 http://inclyc.cn/
 http://inclyc.cn/tags/Compiler/
 http://inclyc.cn/tags/Misc/
