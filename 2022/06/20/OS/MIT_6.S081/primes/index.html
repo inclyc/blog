@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"inclyc.cn","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.15.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"inclyc.cn","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.17.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="Primes 这个实验要求设计一个素数发生器。基于管道实现埃氏筛。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849#include &quot;user.h&quot;void produce(int backward_pipe_fd) &amp;#123;  int pri">
 <meta property="og:type" content="article">
@@ -27,7 +27,7 @@
 <meta property="og:description" content="Primes 这个实验要求设计一个素数发生器。基于管道实现埃氏筛。 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849#include &quot;user.h&quot;void produce(int backward_pipe_fd) &amp;#123;  int pri">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-20T09:47:19.000Z">
-<meta property="article:modified_time" content="2023-04-03T23:55:50.473Z">
+<meta property="article:modified_time" content="2023-07-24T06:13:37.901Z">
 <meta property="article:author" content="inclyc">
 <meta property="article:tag" content="OS">
 <meta name="twitter:card" content="summary">
@@ -193,7 +193,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-04 07:55:50" itemprop="dateModified" datetime="2023-04-04T07:55:50+08:00">2023-04-04</time>
+      <time title="修改时间：2023-07-24 14:13:37" itemprop="dateModified" datetime="2023-07-24T14:13:37+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -218,8 +218,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <h1 id="primes">Primes</h1>
+    <div class="post-body" itemprop="articleBody"><h1 id="primes">Primes</h1>
 <p>这个实验要求设计一个素数发生器。<a target="_blank" rel="noopener" href="https://swtch.com/~rsc/thread/">基于管道实现埃氏筛</a>。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;user.h&quot;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">produce</span><span class="params">(<span class="type">int</span> backward_pipe_fd)</span> &#123;</span><br><span class="line">  <span class="type">int</span> prime;</span><br><span class="line">  read(backward_pipe_fd, &amp;prime, <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;prime %d\n&quot;</span>, prime);</span><br><span class="line">  <span class="keyword">if</span> (prime &gt;= <span class="number">31</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="type">int</span> pp[<span class="number">2</span>];</span><br><span class="line">  pipe(pp);</span><br><span class="line">  <span class="type">int</span> pid = fork();</span><br><span class="line">  <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// child</span></span><br><span class="line">    close(pp[<span class="number">1</span>]);</span><br><span class="line">    produce(pp[<span class="number">0</span>]);</span><br><span class="line">    close(pp[<span class="number">0</span>]);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    close(pp[<span class="number">0</span>]); <span class="comment">//  close a ----- b ----read--- c</span></span><br><span class="line">    <span class="keyword">for</span> (; read(backward_pipe_fd, &amp;n, <span class="keyword">sizeof</span>(<span class="type">int</span>));) &#123;</span><br><span class="line">      <span class="keyword">if</span> (n % prime)</span><br><span class="line">        write(pp[<span class="number">1</span>], &amp;n, <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    close(pp[<span class="number">1</span>]);            <span class="comment">// close a ---------- b ---write-- c</span></span><br><span class="line">    close(backward_pipe_fd); <span class="comment">// close a ---read--- b ---------- c</span></span><br><span class="line">    wait(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;prime 2\n&quot;</span>);</span><br><span class="line">  <span class="type">int</span> pp[<span class="number">2</span>];</span><br><span class="line">  pipe(pp);</span><br><span class="line">  <span class="type">int</span> pid = fork();</span><br><span class="line">  <span class="keyword">if</span> (pid == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// child</span></span><br><span class="line">    close(pp[<span class="number">1</span>]);</span><br><span class="line">    produce(pp[<span class="number">0</span>]);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    close(pp[<span class="number">0</span>]);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">3</span>; i &lt; <span class="number">32</span>; i += <span class="number">2</span>) &#123;   <span class="comment">// filter 2-factors</span></span><br><span class="line">      write(pp[<span class="number">1</span>], &amp;i, <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    close(pp[<span class="number">1</span>]);</span><br><span class="line">    wait(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p><a target="_blank" rel="noopener" href="https://github.com/inclyc/xv6-labs-2021/commit/96d992511da523395b7984a78709315bb66f348a">最开始的实验版本</a>我在<code>fork</code>之后才调用<code>pipe</code>，导致出现了逻辑上的问题。这个程序中如果不及时关闭pipe中不需要的那个<code>fd</code>，会导致阻塞/资源用尽。</p>
@@ -264,15 +263,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="fa fa-heart"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">inclyc</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">inclyc</span>
+  </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
 
@@ -301,6 +299,8 @@
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   
+
+
 
 
 

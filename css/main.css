@@ -1935,7 +1935,12 @@ pre code {
   font-size: 0.875em;
   margin-top: 1em;
   padding-top: 1em;
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.social-like a {
+  border-bottom: none;
 }
 .reward-container {
   margin: 1em 0 0;
@@ -2176,22 +2181,22 @@ ul.breadcrumb li:last-child {
 .use-motion .sidebar .animated {
   animation-fill-mode: both;
 }
-.header {
+header.header {
   margin: 0 auto;
   width: 700px;
 }
 @media (max-width: 767px) {
-  .header {
+  header.header {
     width: auto;
   }
 }
 @media (min-width: 1200px) {
-  .header {
+  header.header {
     width: 800px;
   }
 }
 @media (min-width: 1600px) {
-  .header {
+  header.header {
     width: 900px;
   }
 }
@@ -2238,11 +2243,11 @@ ul.breadcrumb li:last-child {
 .brand {
   background: var(--btn-default-bg);
 }
-.header {
+header.header {
   padding-top: 100px;
 }
 @media (max-width: 767px) {
-  .header {
+  header.header {
     padding-top: 50px;
   }
 }
@@ -2353,7 +2358,7 @@ ul.breadcrumb li:last-child {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #5308ff;
+  background: #59f617;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
